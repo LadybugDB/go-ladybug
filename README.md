@@ -1,8 +1,8 @@
 # go-ladybug
-[![Go Reference](https://pkg.go.dev/badge/github.com/ladybugdb/go-lbug.svg)](https://pkg.go.dev/github.com/ladybugdb/go-lbug)
-[![CI](https://github.com/LadybugDB/go-lbug/actions/workflows/go.yml/badge.svg)](https://github.com/LadybugDB/go-lbug/actions/workflows/go.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/ladybugdb/go-lbug)](https://goreportcard.com/report/github.com/ladybugdb/go-lbug)
-[![License](https://img.shields.io/github/license/lbugdb/go-lbug)](LICENSE)
+[![Go Reference](https://pkg.go.dev/badge/github.com/ladybugdb/go-ladybug.svg)](https://pkg.go.dev/github.com/ladybugdb/go-ladybug)
+[![CI](https://github.com/LadybugDB/go-ladybug/actions/workflows/go.yml/badge.svg)](https://github.com/LadybugDB/go-ladybug/actions/workflows/go.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ladybugdb/go-ladybug)](https://goreportcard.com/report/github.com/ladybugdb/go-ladybug)
+[![License](https://img.shields.io/github/license/lbugdb/go-ladybug)](LICENSE)
 
 Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [Ladybug website](https://ladybugdb.com).
 
@@ -49,5 +49,5 @@ For Cgo to properly work on Windows, MSYS2 with `UCRT64` environment is required
 For an example of how to properly set up the environment, you can also refer to our CI configuration file [here](.github/workflows/go.yml).
 
 ## Contributing
-We welcome contributions to go-lbug. By contributing to go-lbug, you agree that your contributions will be licensed under the [MIT License](LICENSE). Please read the [contributing guide](CONTRIBUTING.md) for more information.
+We welcome contributions to go-ladybug. By contributing to go-ladybug, you agree that your contributions will be licensed under the [MIT License](LICENSE). Please read the [contributing guide](CONTRIBUTING.md) for more information.
 
