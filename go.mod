@@ -1,4 +1,4 @@
-module github.com/ladybugdb/go-ladybug
+module github.com/LadybugDB/go-ladybug
 
 go 1.20
 
