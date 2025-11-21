@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ladybugdb/go-ladybug)](https://goreportcard.com/report/github.com/ladybugdb/go-ladybug)
 [![License](https://img.shields.io/github/license/lbugdb/go-ladybug)](LICENSE)
 
-Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [Ladybug website](https://ladybugdb.com).
+Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [LadybugDB website](https://ladybugdb.com).
 
 ## Installation
 
