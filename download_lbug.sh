@@ -19,6 +19,36 @@ case $arch in
     *) echo "❌ Unsupported architecture: $arch"; exit 1 ;;
 esac
 
+
+# Map to Go conventions for variable usage, but custom path construction
+if [ "$os" = "osx" ]; then
+    go_os="darwin"
+else
+    go_os="$os"
+fi
+
+if [ "$arch" = "x86_64" ]; then
+    go_arch="amd64"
+elif [ "$arch" = "aarch64" ]; then
+    go_arch="arm64"
+else
+    go_arch="$arch"
+fi
+
+# Construct target directory based on cgo_shared.go expectations
+if [ "$go_os" = "linux" ]; then
+    platform="linux-${go_arch}"
+elif [ "$go_os" = "darwin" ]; then
+    platform="darwin"
+elif [ "$go_os" = "windows" ]; then
+    platform="windows"
+else
+    platform="${go_os}_${go_arch}"
+fi
+
+target_dir="lib/dynamic/$platform"
+echo "🎯 Target Directory: $target_dir"
+
 # Determine asset name
 if [ "$os" = "osx" ]; then
     asset="liblbug-osx-universal.tar.gz"
@@ -69,6 +99,40 @@ if [ -n "$lbug_file" ]; then
     echo "✅ Copied lbug.h to project root"
 else
     echo "❌ lbug.h not found in the extracted files"
+    exit 1
+fi
+
+# Find and copy library file based on OS
+case $os in
+    linux)
+        lib_pattern="liblbug.so"
+        ;;
+    osx)
+        lib_pattern="liblbug.dylib"
+        ;;
+    windows)
+        lib_pattern="lbug.dll"
+        ;;
+esac
+
+lib_file=$(find . -name "$lib_pattern" | head -1)
+if [ -n "$lib_file" ]; then
+    # Create target directory
+    mkdir -p "$OLDPWD/$target_dir"
+    
+    cp "$lib_file" "$OLDPWD/$target_dir/"
+    echo "✅ Copied $lib_pattern to $target_dir"
+    
+    # For Windows, also look for .lib if it exists
+    if [ "$os" = "windows" ]; then
+        lib_import=$(find . -name "lbug.lib" | head -1)
+        if [ -n "$lib_import" ]; then
+            cp "$lib_import" "$OLDPWD/$target_dir/"
+            echo "✅ Copied lbug.lib to $target_dir"
+        fi
+    fi
+else
+    echo "❌ Library file ($lib_pattern) not found in the extracted files"
     exit 1
 fi
 
