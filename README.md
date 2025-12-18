@@ -2,7 +2,7 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/LadybugDB/go-ladybug.svg)](https://pkg.go.dev/github.com/LadybugDB/go-ladybug)
 [![CI](https://github.com/LadybugDB/go-ladybug/actions/workflows/go.yml/badge.svg)](https://github.com/LadybugDB/go-ladybug/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/LadybugDB/go-ladybug)](https://goreportcard.com/report/github.com/LadybugDB/go-ladybug)
-[![License](https://img.shields.io/github/license/lbugdb/go-ladybug)](LICENSE)
+[![License](https://img.shields.io/github/license/LadybugDB/go-ladybug)](LICENSE)
 
 Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [LadybugDB website](https://ladybugdb.com).
 
