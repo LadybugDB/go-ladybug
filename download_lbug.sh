@@ -39,7 +39,7 @@ fi
 if [ "$go_os" = "linux" ]; then
     platform="linux-${go_arch}"
 elif [ "$go_os" = "darwin" ]; then
-    platform="darwin"
+    platform="osx"
 elif [ "$go_os" = "windows" ]; then
     platform="windows"
 else
