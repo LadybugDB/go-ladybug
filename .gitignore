@@ -68,6 +68,3 @@ Temporary Items
 .ionide
 
 example_db
-
-# Ignore downloaded libraries
-lib/dynamic
