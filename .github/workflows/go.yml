@@ -22,25 +22,17 @@ jobs:
         
     - uses: actions/checkout@v4
 
-    - name: Download and extract lbug library
+    - name: Set library environment variables
       run: |
         if [ "$RUNNER_OS" == "Linux" ]; then
           if [ "$RUNNER_ARCH" == "X64" ]; then
-            asset="liblbug-linux-x86_64.tar.gz"
+            os="linux-amd64"
           elif [ "$RUNNER_ARCH" == "ARM64" ]; then
-            asset="liblbug-linux-aarch64.tar.gz"
+            os="linux-arm64"
           fi
-          os="linux"
-          libname="liblbug.so"
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          asset="liblbug-osx-universal.tar.gz"
           os="osx"
-          libname="liblbug.dylib"
         fi
-        curl -L -o lbug.tar.gz https://github.com/LadybugDB/ladybug/releases/latest/download/$asset
-        tar -xzf lbug.tar.gz
-        mkdir -p lib/dynamic/$os
-        mv $libname lib/dynamic/$os/
         echo "LIBRARY_PATH=$(pwd)/lib/dynamic/$os:$LIBRARY_PATH" >> $GITHUB_ENV
         if [ "$RUNNER_OS" == "Linux" ]; then
           echo "LD_LIBRARY_PATH=$(pwd)/lib/dynamic/$os:$LD_LIBRARY_PATH" >> $GITHUB_ENV
@@ -74,22 +66,14 @@ jobs:
         update: true
         msystem: UCRT64
         install: >-
-          curl
           git
           mingw-w64-ucrt-x86_64-go
           mingw-w64-ucrt-x86_64-gcc
-          unzip
 
     - uses: actions/checkout@v4
-      
-    - name: Download and extract lbug library
+
+    - name: Set library environment variables
       run: |
-        asset="liblbug-windows-x86_64.zip"
-        curl -L -o lbug.zip https://github.com/LadybugDB/ladybug/releases/latest/download/$asset
-        unzip -o lbug.zip
-        mkdir -p lib/dynamic/windows
-        mv lbug_shared.dll lib/dynamic/windows/
-        mv lbug_shared.lib lib/dynamic/windows/
         echo "LIBRARY_PATH=$(pwd)/lib/dynamic/windows:$LIBRARY_PATH" >> $GITHUB_ENV
 
     - name: Build
