@@ -29,11 +29,14 @@ download_library() {
     fi
 
     # Extract the asset
-    if [[ "$asset" == *.tar.gz ]]; then
-        tar -xzf "$asset"
-    else
-        unzip -q "$asset"
-    fi
+    case "$asset" in
+        *.tar.gz)
+            tar -xzf "$asset"
+            ;;
+        *)
+            unzip -q "$asset"
+            ;;
+    esac
 
     # Find and copy library file
     local lib_file=$(find . -name "$lib_pattern" | head -1)
@@ -179,11 +182,14 @@ else
 fi
 
 # Extract to get lbug.h
-if [[ "$asset" == *.tar.gz ]]; then
-    tar -xzf "$asset"
-else
-    unzip -q "$asset"
-fi
+    case "$asset" in
+        *.tar.gz)
+            tar -xzf "$asset"
+            ;;
+        *)
+            unzip -q "$asset"
+            ;;
+    esac
 
 # Find and copy lbug.h
 lbug_file=$(find . -name "lbug.h" | head -1)
