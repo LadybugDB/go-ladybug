@@ -7,10 +7,23 @@
 Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [LadybugDB website](https://ladybugdb.com).
 
 ## Installation
+To use `go-ladybug` in your project, you need to add a `go:generate` directive to download the required dynamic libraries.
 
-```bash
-go get github.com/LadybugDB/go-ladybug
-```
+1.  Add `go-ladybug` to your project:
+    ```bash
+    go get github.com/LadybugDB/go-ladybug
+    ```
+
+2.  Add a `go:generate` directive in your project (e.g., in `main.go` or `tools.go`):
+    ```go
+    //go:generate sh -c "cd $(go list -f '{{.Dir}}' -m github.com/LadybugDB/go-ladybug) && go generate ./..."
+    ```
+
+3.  Run `go generate` and build your project:
+    ```bash
+    go generate ./...
+    go build
+    ```
 
 ## Get started
 An example project is available in the [example](example) directory.

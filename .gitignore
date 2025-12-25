@@ -68,3 +68,7 @@ Temporary Items
 .ionide
 
 example_db
+
+# Libraries and Headers
+lib/dynamic
+

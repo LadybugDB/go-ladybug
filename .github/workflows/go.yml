@@ -21,6 +21,9 @@ jobs:
         go-version: '1.20'
         
     - uses: actions/checkout@v4
+    
+    - name: Download libraries
+      run: go generate ./...
 
     - name: Set library environment variables
       run: |
@@ -69,8 +72,12 @@ jobs:
           git
           mingw-w64-ucrt-x86_64-go
           mingw-w64-ucrt-x86_64-gcc
+          unzip
 
     - uses: actions/checkout@v4
+
+    - name: Download libraries
+      run: go generate ./...
 
     - name: Set library environment variables
       run: |
@@ -89,3 +96,4 @@ jobs:
         export PATH="$(pwd)/lib/dynamic/windows:$PATH"
         cd example
         go run main.go
+
