@@ -107,28 +107,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check if we should download all libraries
-if [ -n "$DOWNLOAD_ALL_LIBS" ]; then
-    echo "Downloading all libraries for all platforms..."
-
-    if [ -n "$out_dir" ]; then
-        # External directory - don't copy header
-        download_library "liblbug-linux-x86_64.tar.gz" "$out_dir/linux-amd64" "liblbug.so" "linux"
-        download_library "liblbug-linux-aarch64.tar.gz" "$out_dir/linux-arm64" "liblbug.so" "linux"
-        download_library "liblbug-osx-universal.tar.gz" "$out_dir/osx" "liblbug.dylib" "osx"
-        download_library "liblbug-windows-x86_64.zip" "$out_dir/windows" "lbug_shared.dll" "windows"
-    else
-        # go-ladybug source tree - copy header from first download
-        download_library "liblbug-linux-x86_64.tar.gz" "lib/dynamic/linux-amd64" "liblbug.so" "linux" "yes" "."
-        download_library "liblbug-linux-aarch64.tar.gz" "lib/dynamic/linux-arm64" "liblbug.so" "linux"
-        download_library "liblbug-osx-universal.tar.gz" "lib/dynamic/osx" "liblbug.dylib" "osx"
-        download_library "liblbug-windows-x86_64.zip" "lib/dynamic/windows" "lbug_shared.dll" "windows"
-    fi
-
-    echo "All libraries downloaded successfully!"
-    exit 0
-fi
-
 # Detect OS and Architecture
 os=$(uname -s)
 arch=$(uname -m)
