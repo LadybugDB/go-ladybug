@@ -7,6 +7,7 @@
 Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [LadybugDB website](https://ladybugdb.com).
 
 ## Installation
+<<<<<<< HEAD
 ## Installation
 
 There are two ways to use `go-ladybug`:
@@ -30,15 +31,30 @@ This option applies for situations where the user wants to clone the go-ladybug 
     ```
 
 3.  Add a `go:generate` directive in your project. Since `go-ladybug` is now a local module, this command will run `go generate` inside the cloned directory, where files are writable:
+=======
+To use `go-ladybug` in your project, you need to add a `go:generate` directive to download the required dynamic libraries.
+
+1.  Add `go-ladybug` to your project:
+    ```bash
+    go get github.com/LadybugDB/go-ladybug
+    ```
+
+2.  Add a `go:generate` directive in your project (e.g., in `main.go` or `tools.go`):
+>>>>>>> origin/master
     ```go
     //go:generate sh -c "cd $(go list -f '{{.Dir}}' -m github.com/LadybugDB/go-ladybug) && go generate ./..."
     ```
 
+<<<<<<< HEAD
 4.  Build normally:
+=======
+3.  Run `go generate` and build your project:
+>>>>>>> origin/master
     ```bash
     go generate ./...
     go build
     ```
+<<<<<<< HEAD
 
 ### Option 2: Add the compiled libraries to your project
 
@@ -92,6 +108,8 @@ If you prefer not to clone the go-ladybug repo, you can download the libraries (
     $env:CGO_LDFLAGS="-L$PWD/lib-ladybug -llbug_shared"
     go build -tags system_ladybug
     ```
+=======
+>>>>>>> origin/master
 
 ## Get started
 An example project is available in the [example](example) directory.
