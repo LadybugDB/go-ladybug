@@ -43,7 +43,7 @@ If you prefer not to clone the go-ladybug repo, you can download the libraries (
 
 1.  Add a `go:generate` directive to your `main.go` or `tools.go` to download the libraries into a local folder (e.g. `lib-ladybug`). You can use the `download_lbug.sh` script directly from the repository:
     ```go
-    //go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/main/download_lbug.sh | bash -s -- -out lib-ladybug"
+    //go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/refs/heads/master/download_lbug.sh | bash -s -- -out lib-ladybug"
     ```
 
 2.  Run generation:

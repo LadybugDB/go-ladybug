@@ -14,7 +14,7 @@ import (
 // 2. Build/Run with the system_ladybug tag:
 //    go run -tags system_ladybug main.go
 
-//go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/main/download_lbug.sh | bash -s -- -out lib-ladybug"
+//go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/refs/heads/master/download_lbug.sh | bash -s -- -out lib-ladybug"
 
 /*
 #cgo darwin LDFLAGS: -L${SRCDIR}/lib-ladybug -Wl,-rpath,${SRCDIR}/lib-ladybug
