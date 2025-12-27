@@ -7,22 +7,90 @@
 Official Go language binding for [LadybugDB](https://github.com/LadybugDB/ladybug). Ladybug is an embeddable property graph database management system built for query speed and scalability. For more information, please visit the [Ladybug GitHub repository](https://github.com/LadybugDB/ladybug) or the [LadybugDB website](https://ladybugdb.com).
 
 ## Installation
-To use `go-ladybug` in your project, you need to add a `go:generate` directive to download the required dynamic libraries.
+## Installation
 
-1.  Add `go-ladybug` to your project:
+There are two ways to use `go-ladybug`:
+
+## Installation
+
+### Option 1: Using `go.work`
+
+This option applies for situations where the user wants to clone the go-ladybug repo and configure using the local module using a go.work file.
+
+1.  Clone `go-ladybug` to your local machine:
     ```bash
-    go get github.com/LadybugDB/go-ladybug
+    git clone https://github.com/LadybugDB/go-ladybug.git
     ```
 
-2.  Add a `go:generate` directive in your project (e.g., in `main.go` or `tools.go`):
+2.  Initialize or update your `go.work` file to include both your project and the local `go-ladybug` clone:
+    ```bash
+    go work init ./my-project ./go-ladybug
+    # OR if go.work already exists
+    go work use ./go-ladybug
+    ```
+
+3.  Add a `go:generate` directive in your project. Since `go-ladybug` is now a local module, this command will run `go generate` inside the cloned directory, where files are writable:
     ```go
     //go:generate sh -c "cd $(go list -f '{{.Dir}}' -m github.com/LadybugDB/go-ladybug) && go generate ./..."
     ```
 
-3.  Run `go generate` and build your project:
+4.  Build normally:
     ```bash
     go generate ./...
     go build
+    ```
+
+### Option 2: Add the compiled libraries to your project
+
+If you prefer not to clone the go-ladybug repo, you can download the libraries (e.g. `lib-ladybug`) at build time. You can use the `download_lbug.sh` script directly from the repository:
+
+1.  Add a `go:generate` directive to your `main.go` or `tools.go` to download the libraries into a local folder (e.g. `lib-ladybug`). You can use the `download_lbug.sh` script directly from the repository:
+    ```go
+    //go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/main/download_lbug.sh | bash -s -- -out lib-ladybug"
+    ```
+
+2.  Run generation:
+    ```bash
+    go generate ./...
+    ```
+
+    This will download the libraries (and header file) into `lib-ladybug/` in your project root.
+
+3.  Configure `go-ladybug` to use the system libraries by using the `system_ladybug` build tag. You also need to tell Cgo where to find these libraries.
+
+    You can add Cgo directives directly to your `main.go` (or any other Go file in your main package) to point to the local `lib-ladybug` directory:
+
+    ```go
+    /*
+    #cgo darwin LDFLAGS: -L${SRCDIR}/lib-ladybug -Wl,-rpath,${SRCDIR}/lib-ladybug
+    #cgo linux LDFLAGS: -L${SRCDIR}/lib-ladybug -Wl,-rpath,${SRCDIR}/lib-ladybug
+    #cgo windows LDFLAGS: -L${SRCDIR}/lib-ladybug
+    */
+    import "C"
+
+    import (
+        _ "github.com/LadybugDB/go-ladybug"
+    )
+    ```
+
+    Then build with the tag:
+
+    ```bash
+    go build -tags system_ladybug
+    ```
+
+    Alternatively, you can set environment variables (useful for CI scripts):
+
+    **Linux/macOS:**
+    ```bash
+    export CGO_LDFLAGS="-L$(pwd)/lib-ladybug -llbug -Wl,-rpath,$(pwd)/lib-ladybug"
+    go build -tags system_ladybug
+    ```
+
+    **Windows (PowerShell):**
+    ```powershell
+    $env:CGO_LDFLAGS="-L$PWD/lib-ladybug -llbug_shared"
+    go build -tags system_ladybug
     ```
 
 ## Get started

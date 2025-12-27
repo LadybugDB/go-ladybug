@@ -1,3 +1,5 @@
+//go:build !system_ladybug
+
 package lbug
 
 //go:generate sh download_lbug.sh

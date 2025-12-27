@@ -67,6 +67,20 @@ download_library() {
     rm -rf "$temp_dir"
 }
 
+# Parse arguments
+out_dir=""
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -out)
+            out_dir="$2"
+            shift 2
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 # Check if we should download all libraries
 if [ -n "$DOWNLOAD_ALL_LIBS" ]; then
     echo "Downloading all libraries for all platforms..."
@@ -80,8 +94,13 @@ if [ -n "$DOWNLOAD_ALL_LIBS" ]; then
     tar -xzf "liblbug-osx-universal.tar.gz"
     lbug_file=$(find . -name "lbug.h" | head -1)
     if [ -n "$lbug_file" ]; then
-        cp "$lbug_file" "$OLDPWD"
-        echo "Copied lbug.h to project root"
+        if [ -n "$out_dir" ]; then
+           mkdir -p "$OLDPWD/$out_dir"
+           cp "$lbug_file" "$OLDPWD/$out_dir/"
+        else
+           cp "$lbug_file" "$OLDPWD"
+        fi
+        echo "Copied lbug.h"
     else
         echo "ERROR: lbug.h not found"
         exit 1
@@ -89,11 +108,21 @@ if [ -n "$DOWNLOAD_ALL_LIBS" ]; then
     cd "$OLDPWD"
     rm -rf "$temp_dir"
 
-    # Download all platform libraries
-    download_library "liblbug-linux-x86_64.tar.gz" "lib/dynamic/linux-amd64" "liblbug.so" "linux"
-    download_library "liblbug-linux-aarch64.tar.gz" "lib/dynamic/linux-arm64" "liblbug.so" "linux"
-    download_library "liblbug-osx-universal.tar.gz" "lib/dynamic/osx" "liblbug.dylib" "osx"
-    download_library "liblbug-windows-x86_64.zip" "lib/dynamic/windows" "lbug_shared.dll" "windows"
+    if [ -n "$out_dir" ]; then
+        # If output directory is specified, downloading all libs might not make sense or might need a different structure.
+        # But assuming the user knows what they are doing if they combine options.
+        # For valid structure, we'll keep the subdirectory structure inside out_dir if DOWNLOAD_ALL_LIBS is set.
+        download_library "liblbug-linux-x86_64.tar.gz" "$out_dir/linux-amd64" "liblbug.so" "linux"
+        download_library "liblbug-linux-aarch64.tar.gz" "$out_dir/linux-arm64" "liblbug.so" "linux"
+        download_library "liblbug-osx-universal.tar.gz" "$out_dir/osx" "liblbug.dylib" "osx"
+        download_library "liblbug-windows-x86_64.zip" "$out_dir/windows" "lbug_shared.dll" "windows"
+    else
+        # Default behavior (inside repo)
+        download_library "liblbug-linux-x86_64.tar.gz" "lib/dynamic/linux-amd64" "liblbug.so" "linux"
+        download_library "liblbug-linux-aarch64.tar.gz" "lib/dynamic/linux-arm64" "liblbug.so" "linux"
+        download_library "liblbug-osx-universal.tar.gz" "lib/dynamic/osx" "liblbug.dylib" "osx"
+        download_library "liblbug-windows-x86_64.zip" "lib/dynamic/windows" "lbug_shared.dll" "windows"
+    fi
 
     echo "All libraries downloaded successfully!"
     exit 0
@@ -132,18 +161,21 @@ else
     go_arch="$arch"
 fi
 
-# Construct target directory based on cgo_shared.go expectations
-if [ "$go_os" = "linux" ]; then
-    platform="linux-${go_arch}"
-elif [ "$go_os" = "darwin" ]; then
-    platform="osx"
-elif [ "$go_os" = "windows" ]; then
-    platform="windows"
+# Construct target directory based on cgo_shared.go expectations or use provided out_dir
+if [ -n "$out_dir" ]; then
+    target_dir="$out_dir"
 else
-    platform="${go_os}_${go_arch}"
+    if [ "$go_os" = "linux" ]; then
+        platform="linux-${go_arch}"
+    elif [ "$go_os" = "darwin" ]; then
+        platform="osx"
+    elif [ "$go_os" = "windows" ]; then
+        platform="windows"
+    else
+        platform="${go_os}_${go_arch}"
+    fi
+    target_dir="lib/dynamic/$platform"
 fi
-
-target_dir="lib/dynamic/$platform"
 echo "Target Directory: $target_dir"
 
 # Determine asset name and library pattern
@@ -194,8 +226,16 @@ fi
 # Find and copy lbug.h
 lbug_file=$(find . -name "lbug.h" | head -1)
 if [ -n "$lbug_file" ]; then
-    cp "$lbug_file" "$OLDPWD"
-    echo "Copied lbug.h to project root"
+    if [ -n "$out_dir" ]; then
+        mkdir -p "$OLDPWD/$out_dir"
+        cp "$lbug_file" "$OLDPWD/$out_dir/"
+        echo "Copied lbug.h to $out_dir"
+    elif [ ! -f "$OLDPWD/lbug.h" ] || [ -w "$OLDPWD/lbug.h" ]; then
+        cp "$lbug_file" "$OLDPWD"
+        echo "Copied lbug.h to project root"
+    else
+        echo "Skipping copy of lbug.h (destination not writable)"
+    fi
 else
     echo "ERROR: lbug.h not found in the extracted files"
     exit 1
