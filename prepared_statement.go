@@ -13,8 +13,8 @@ type PreparedStatement struct {
 	isClosed           bool
 }
 
-// Close closes the PreparedStatement. Calling this method is optional.
-// The PreparedStatement will be closed automatically when it is garbage collected.
+// Close releases the underlying C resources for the PreparedStatement.
+// MUST be called when done to prevent resource leaks.
 func (stmt *PreparedStatement) Close() {
 	if stmt.isClosed {
 		return
