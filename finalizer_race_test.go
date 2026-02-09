@@ -37,15 +37,15 @@ func TestFinalizerRaceCondition(t *testing.T) {
 	var wg sync.WaitGroup
 	errChan := make(chan error, numGoroutines*queriesPerGoroutine)
 
-	for g := 0; g < numGoroutines; g++ {
+	for g := range numGoroutines {
 		wg.Add(1)
 		go func(goroutineID int) {
 			defer wg.Done()
 
-			for q := 0; q < queriesPerGoroutine; q++ {
+			for range queriesPerGoroutine {
 				// Query without storing result in a variable that persists
 				// This pattern allows the QueryResult to become "unreachable" quickly
-				if err := runLargeQueryAndIterate(conn); err != nil {
+				if err := runQueryAndIterate(conn); err != nil {
 					errChan <- err
 					return
 				}
@@ -123,10 +123,7 @@ func createTestData(t *testing.T, conn *Connection, numNodes int) {
 
 	const batchSize = 100
 	for i := 0; i < numNodes; i += batchSize {
-		end := i + batchSize
-		if end > numNodes {
-			end = numNodes
-		}
+		end := min(i + batchSize, numNodes)
 
 		for j := i; j < end; j++ {
 			query := fmt.Sprintf(`
@@ -164,12 +161,12 @@ func createTestData(t *testing.T, conn *Connection, numNodes int) {
 	}
 }
 
-// runLargeQueryAndIterate executes a query returning OLAP-scale results (15k+ rows).
+// runQueryAndIterate executes a query returning OLAP-scale results (15k+ rows).
 // This matches real-world usage patterns where large result sets create GC pressure.
 // The query returns all CONNECTS relationships with multiple columns per row.
 //
 // Returns error if the query or iteration fails.
-func runLargeQueryAndIterate(conn *Connection) error {
+func runQueryAndIterate(conn *Connection) error {
 	result, err := conn.Query(`
 		MATCH (source:Node)-[r:CONNECTS]->(target:Node)
 		RETURN source.file_path, source.fqn, source.id, 
@@ -180,6 +177,8 @@ func runLargeQueryAndIterate(conn *Connection) error {
 	if err != nil {
 		return fmt.Errorf("query failed: %w", err)
 	}
+	defer result.Close()
+
 	rowCount := 0
 	for result.HasNext() {
 		row, err := result.Next()
@@ -188,12 +187,14 @@ func runLargeQueryAndIterate(conn *Connection) error {
 		}
 
 		// Access all 7 columns - each GetValue enters a race
-		for col := uint64(0); col < 7; col++ {
+		for col := range uint64(7) {
 			_, err = row.GetValue(col)
 			if err != nil {
+				row.Close()
 				return fmt.Errorf("GetValue(%d) failed at row %d: %w", col, rowCount, err)
 			}
 		}
+		row.Close()
 
 		rowCount++
 	}

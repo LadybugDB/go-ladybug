@@ -6,7 +6,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -30,8 +29,8 @@ func (queryResult *QueryResult) ToString() string {
 	return str
 }
 
-// Close closes the QueryResult. Calling this method is optional.
-// The QueryResult will be closed automatically when it is garbage collected.
+// Close releases the underlying C resources for the QueryResult.
+// MUST be called when done to prevent resource leaks.
 func (queryResult *QueryResult) Close() {
 	if queryResult.isClosed {
 		return
@@ -84,9 +83,6 @@ func (queryResult *QueryResult) HasNext() bool {
 // Next returns the next tuple in the result set.
 func (queryResult *QueryResult) Next() (*FlatTuple, error) {
 	tuple := &FlatTuple{}
-	runtime.SetFinalizer(tuple, func(tuple *FlatTuple) {
-		tuple.Close()
-	})
 	tuple.queryResult = queryResult
 	status := C.lbug_query_result_get_next(&queryResult.cQueryResult, &tuple.cFlatTuple)
 	if status != C.LbugSuccess {
@@ -104,9 +100,6 @@ func (queryResult *QueryResult) HasNextQueryResult() bool {
 // NextQueryResult returns the next query result when multiple query statements are executed.
 func (queryResult *QueryResult) NextQueryResult() (*QueryResult, error) {
 	nextQueryResult := &QueryResult{}
-	runtime.SetFinalizer(nextQueryResult, func(nextQueryResult *QueryResult) {
-		nextQueryResult.Close()
-	})
 	status := C.lbug_query_result_get_next_query_result(&queryResult.cQueryResult, &nextQueryResult.cQueryResult)
 	if status != C.LbugSuccess {
 		return nextQueryResult, fmt.Errorf("failed to get next query result with status %d", status)

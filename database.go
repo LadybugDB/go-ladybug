@@ -7,7 +7,6 @@ package lbug
 import "C"
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -63,9 +62,6 @@ type Database struct {
 // OpenDatabase opens a Lbug database at the given path with the given system configuration.
 func OpenDatabase(path string, systemConfig SystemConfig) (*Database, error) {
 	db := &Database{}
-	runtime.SetFinalizer(db, func(db *Database) {
-		db.Close()
-	})
 	cPath := C.CString(path)
 	defer C.free(unsafe.Pointer(cPath))
 	cSystemConfig := systemConfig.toC()
@@ -81,8 +77,9 @@ func OpenInMemoryDatabase(systemConfig SystemConfig) (*Database, error) {
 	return OpenDatabase(":memory:", systemConfig)
 }
 
-// Close closes the database. Calling this method is optional.
-// The database will be closed automatically when it is garbage collected.
+// Close releases the underlying C resources for the database.
+// MUST be called when done to prevent resource leaks.
+// Use defer to ensure cleanup: defer db.Close()
 func (db *Database) Close() {
 	if db.isClosed {
 		return

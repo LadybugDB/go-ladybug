@@ -6,7 +6,6 @@ import "C"
 
 import (
 	"fmt"
-	"runtime"
 	"unsafe"
 )
 
@@ -21,9 +20,6 @@ type Connection struct {
 func OpenConnection(database *Database) (*Connection, error) {
 	conn := &Connection{}
 	conn.database = database
-	runtime.SetFinalizer(conn, func(conn *Connection) {
-		conn.Close()
-	})
 	status := C.lbug_connection_init(&database.cDatabase, &conn.cConnection)
 	if status != C.LbugSuccess {
 		return conn, fmt.Errorf("failed to open connection with status %d", status)
@@ -31,8 +27,8 @@ func OpenConnection(database *Database) (*Connection, error) {
 	return conn, nil
 }
 
-// Close closes the Connection. Calling this method is optional.
-// The Connection will be closed automatically when it is garbage collected.
+// Close releases the underlying C resources for the connection.
+// MUST be called when done to prevent resource leaks.
 func (conn *Connection) Close() {
 	if conn.isClosed {
 		return
@@ -73,14 +69,11 @@ func (conn *Connection) Query(query string) (*QueryResult, error) {
 	defer C.free(unsafe.Pointer(cQuery))
 	queryResult := &QueryResult{}
 	queryResult.connection = conn
-	runtime.SetFinalizer(queryResult, func(queryResult *QueryResult) {
-		queryResult.Close()
-	})
 	status := C.lbug_connection_query(&conn.cConnection, cQuery, &queryResult.cQueryResult)
 	if status != C.LbugSuccess || !C.lbug_query_result_is_success(&queryResult.cQueryResult) {
 		cErrMsg := C.lbug_query_result_get_error_message(&queryResult.cQueryResult)
 		defer C.lbug_destroy_string(cErrMsg)
-		return queryResult, fmt.Errorf(C.GoString(cErrMsg))
+		return queryResult, fmt.Errorf("%s", C.GoString(cErrMsg))
 	}
 	return queryResult, nil
 }
@@ -96,14 +89,11 @@ func (conn *Connection) Execute(preparedStatement *PreparedStatement, args map[s
 			return queryResult, err
 		}
 	}
-	runtime.SetFinalizer(queryResult, func(queryResult *QueryResult) {
-		queryResult.Close()
-	})
 	status := C.lbug_connection_execute(&conn.cConnection, &preparedStatement.cPreparedStatement, &queryResult.cQueryResult)
 	if status != C.LbugSuccess || !C.lbug_query_result_is_success(&queryResult.cQueryResult) {
 		cErrMsg := C.lbug_query_result_get_error_message(&queryResult.cQueryResult)
 		defer C.lbug_destroy_string(cErrMsg)
-		return queryResult, fmt.Errorf(C.GoString(cErrMsg))
+		return queryResult, fmt.Errorf("%s", C.GoString(cErrMsg))
 	}
 	return queryResult, nil
 }
@@ -134,14 +124,11 @@ func (conn *Connection) Prepare(query string) (*PreparedStatement, error) {
 	defer C.free(unsafe.Pointer(cQuery))
 	preparedStatement := &PreparedStatement{}
 	preparedStatement.connection = conn
-	runtime.SetFinalizer(preparedStatement, func(preparedStatement *PreparedStatement) {
-		preparedStatement.Close()
-	})
 	status := C.lbug_connection_prepare(&conn.cConnection, cQuery, &preparedStatement.cPreparedStatement)
 	if status != C.LbugSuccess || !C.lbug_prepared_statement_is_success(&preparedStatement.cPreparedStatement) {
 		cErrMsg := C.lbug_prepared_statement_get_error_message(&preparedStatement.cPreparedStatement)
 		defer C.lbug_destroy_string(cErrMsg)
-		return preparedStatement, fmt.Errorf(C.GoString(cErrMsg))
+		return preparedStatement, fmt.Errorf("%s", C.GoString(cErrMsg))
 	}
 	return preparedStatement, nil
 }

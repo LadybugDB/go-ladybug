@@ -12,8 +12,8 @@ type FlatTuple struct {
 	isClosed    bool
 }
 
-// Close closes the FlatTuple. Calling this method is optional.
-// The FlatTuple will be closed automatically when it is garbage collected.
+// Close releases the underlying C resources for the FlatTuple.
+// MUST be called when done to prevent resource leaks.
 func (tuple *FlatTuple) Close() {
 	if tuple.isClosed {
 		return
