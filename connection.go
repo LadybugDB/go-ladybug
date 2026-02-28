@@ -73,7 +73,8 @@ func (conn *Connection) Query(query string) (*QueryResult, error) {
 	if status != C.LbugSuccess || !C.lbug_query_result_is_success(&queryResult.cQueryResult) {
 		cErrMsg := C.lbug_query_result_get_error_message(&queryResult.cQueryResult)
 		defer C.lbug_destroy_string(cErrMsg)
-		return queryResult, fmt.Errorf("%s", C.GoString(cErrMsg))
+		queryResult.Close()
+		return nil, fmt.Errorf("%s", C.GoString(cErrMsg))
 	}
 	return queryResult, nil
 }
@@ -86,14 +87,16 @@ func (conn *Connection) Execute(preparedStatement *PreparedStatement, args map[s
 	for key, value := range args {
 		err := conn.bindParameter(preparedStatement, key, value)
 		if err != nil {
-			return queryResult, err
+			queryResult.Close()
+			return nil, err
 		}
 	}
 	status := C.lbug_connection_execute(&conn.cConnection, &preparedStatement.cPreparedStatement, &queryResult.cQueryResult)
 	if status != C.LbugSuccess || !C.lbug_query_result_is_success(&queryResult.cQueryResult) {
 		cErrMsg := C.lbug_query_result_get_error_message(&queryResult.cQueryResult)
 		defer C.lbug_destroy_string(cErrMsg)
-		return queryResult, fmt.Errorf("%s", C.GoString(cErrMsg))
+		queryResult.Close()
+		return nil, fmt.Errorf("%s", C.GoString(cErrMsg))
 	}
 	return queryResult, nil
 }

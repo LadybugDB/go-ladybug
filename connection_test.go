@@ -164,7 +164,7 @@ func TestExecuteError(t *testing.T) {
 	result, err := conn.Execute(stmt, args)
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "Parameter b not found")
-	result.Close()
+	assert.Nil(t, result)
 	stmt.Close()
 	conn.Close()
 }
