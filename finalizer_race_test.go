@@ -108,7 +108,7 @@ func setupTestDatabase(t *testing.T) (*Database, *Connection) {
 			db.Close()
 			t.Fatalf("failed to create schema: %v", err)
 		}
-		result.Close()
+		defer result.Close()
 	}
 
 	return db, conn
@@ -140,7 +140,7 @@ func createTestData(t *testing.T, conn *Connection, numNodes int) {
 			if err != nil {
 				t.Fatalf("failed to insert node %d: %v", j, err)
 			}
-			result.Close()
+			defer result.Close()
 		}
 	}
 
@@ -156,7 +156,7 @@ func createTestData(t *testing.T, conn *Connection, numNodes int) {
 			if err != nil {
 				continue
 			}
-			result.Close()
+			defer result.Close()
 		}
 	}
 }
