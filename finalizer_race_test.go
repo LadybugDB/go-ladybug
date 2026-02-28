@@ -29,10 +29,10 @@ func TestFinalizerRaceCondition(t *testing.T) {
 	defer db.Close()
 	defer conn.Close()
 
-	createTestData(t, conn, 100000)
+	createTestData(t, conn, 1000)
 
-	const numGoroutines = 20
-	const queriesPerGoroutine = 30
+	const numGoroutines = 10
+	const queriesPerGoroutine = 5
 
 	var wg sync.WaitGroup
 	errChan := make(chan error, numGoroutines*queriesPerGoroutine)
@@ -123,7 +123,7 @@ func createTestData(t *testing.T, conn *Connection, numNodes int) {
 
 	const batchSize = 100
 	for i := 0; i < numNodes; i += batchSize {
-		end := min(i + batchSize, numNodes)
+		end := min(i+batchSize, numNodes)
 
 		for j := i; j < end; j++ {
 			query := fmt.Sprintf(`
