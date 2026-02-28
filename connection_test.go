@@ -86,6 +86,7 @@ func TestQuery(t *testing.T) {
 	result, err := conn.Query(query)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
+	defer result.Close()
 	assert.NotNil(t, result.cQueryResult)
 	assert.True(t, result.HasNext())
 	flatTuple, err := result.Next()
@@ -94,7 +95,6 @@ func TestQuery(t *testing.T) {
 	slice, err := flatTuple.GetAsSlice()
 	assert.Nil(t, err)
 	assert.Equal(t, slice[0], int64(1))
-	result.Close()
 	conn.Close()
 }
 
@@ -144,6 +144,7 @@ func TestExecute(t *testing.T) {
 	result, err := conn.Execute(stmt, args)
 	assert.Nil(t, err)
 	assert.NotNil(t, result)
+	defer result.Close()
 	assert.NotNil(t, result.cQueryResult)
 	assert.True(t, result.HasNext())
 	flatTuple, err := result.Next()
@@ -152,7 +153,6 @@ func TestExecute(t *testing.T) {
 	slice, err := flatTuple.GetAsSlice()
 	assert.Nil(t, err)
 	assert.Equal(t, slice[0], int64(1))
-	result.Close()
 	stmt.Close()
 	conn.Close()
 }
