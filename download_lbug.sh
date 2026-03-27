@@ -31,6 +31,24 @@ extract_archive() {
     esac
 }
 
+detect_soname() {
+    local lib_file=$1
+
+    if command -v objdump >/dev/null 2>&1; then
+        objdump -p "$lib_file" 2>/dev/null | awk '$1 == "SONAME" { print $2; exit }'
+    elif command -v readelf >/dev/null 2>&1; then
+        readelf -d "$lib_file" 2>/dev/null | awk -F'[][]' '/SONAME/ { print $2; exit }'
+    fi
+}
+
+detect_install_name() {
+    local lib_file=$1
+
+    if command -v otool >/dev/null 2>&1; then
+        otool -D "$lib_file" 2>/dev/null | awk 'NR == 2 { print $1; exit }'
+    fi
+}
+
 # Function to download and extract a specific library
 download_library() {
     local asset=$1
@@ -66,26 +84,76 @@ download_library() {
         fi
     fi
 
-    # Find and copy library file
-    local lib_file=$(find . -name "$lib_pattern" | head -1)
-    if [ -n "$lib_file" ]; then
-        mkdir -p "$OLDPWD/$target_dir"
-        cp "$lib_file" "$OLDPWD/$target_dir/"
-        echo "Copied $lib_pattern to $target_dir"
+    mkdir -p "$OLDPWD/$target_dir"
 
-        # For Windows, also look for .lib if it exists
-        if [ "$os_type" = "windows" ]; then
-            local lib_import=$(find . -name "lbug_shared.lib" -o -name "lbug.lib" | head -1)
-            if [ -n "$lib_import" ]; then
-                cp "$lib_import" "$OLDPWD/$target_dir/"
-                echo "Copied $(basename "$lib_import") to $target_dir"
+    # Linux shared libraries typically ship as a symlink chain:
+    #   liblbug.so -> liblbug.so.0 -> liblbug.so.0.x.y
+    # Preserve those names so the runtime loader can satisfy the SONAME.
+    if [ "$os_type" = "linux" ]; then
+        local found_lib=0
+        local lib_list="$temp_dir/lib_files.txt"
+        local copied_main_lib=""
+        find . \( -type f -o -type l \) -name "${lib_pattern}*" | sort > "$lib_list"
+
+        while IFS= read -r lib_file; do
+            found_lib=1
+            cp -a "$lib_file" "$OLDPWD/$target_dir/"
+            echo "Copied $(basename "$lib_file") to $target_dir"
+            if [ "$(basename "$lib_file")" = "$lib_pattern" ]; then
+                copied_main_lib="$OLDPWD/$target_dir/$lib_pattern"
+            fi
+        done < "$lib_list"
+
+        if [ "$found_lib" -eq 0 ]; then
+            echo "ERROR: Library file (${lib_pattern}*) not found in the extracted files"
+            cd "$OLDPWD"
+            rm -rf "$temp_dir"
+            exit 1
+        fi
+
+        if [ -n "$copied_main_lib" ]; then
+            local soname=$(detect_soname "$copied_main_lib")
+            if [ -n "$soname" ] && [ "$soname" != "$lib_pattern" ] && [ ! -e "$OLDPWD/$target_dir/$soname" ]; then
+                ln -s "$lib_pattern" "$OLDPWD/$target_dir/$soname"
+                echo "Created $soname -> $lib_pattern in $target_dir"
             fi
         fi
     else
-        echo "ERROR: Library file ($lib_pattern) not found in the extracted files"
-        cd "$OLDPWD"
-        rm -rf "$temp_dir"
-        exit 1
+        # Find and copy library file
+        local lib_file=$(find . -name "$lib_pattern" | head -1)
+        if [ -n "$lib_file" ]; then
+            cp "$lib_file" "$OLDPWD/$target_dir/"
+            echo "Copied $lib_pattern to $target_dir"
+
+            if [ "$os_type" = "osx" ]; then
+                local copied_lib="$OLDPWD/$target_dir/$lib_pattern"
+                local install_name=$(detect_install_name "$copied_lib")
+                local install_basename=""
+
+                if [ -n "$install_name" ]; then
+                    install_basename=$(basename "$install_name")
+                fi
+
+                if [ -n "$install_basename" ] && [ "$install_basename" != "$lib_pattern" ] && [ ! -e "$OLDPWD/$target_dir/$install_basename" ]; then
+                    ln -s "$lib_pattern" "$OLDPWD/$target_dir/$install_basename"
+                    echo "Created $install_basename -> $lib_pattern in $target_dir"
+                fi
+            fi
+
+            # For Windows, also look for .lib if it exists
+            if [ "$os_type" = "windows" ]; then
+                local lib_import=$(find . -name "lbug_shared.lib" -o -name "lbug.lib" | head -1)
+                if [ -n "$lib_import" ]; then
+                    cp "$lib_import" "$OLDPWD/$target_dir/"
+                    echo "Copied $(basename "$lib_import") to $target_dir"
+                fi
+            fi
+        else
+            echo "ERROR: Library file ($lib_pattern) not found in the extracted files"
+            cd "$OLDPWD"
+            rm -rf "$temp_dir"
+            exit 1
+        fi
     fi
 
     # Cleanup
