@@ -66,12 +66,10 @@ func lbugNodeValueToGoValue(lbugValue C.lbug_value) (Node, error) {
 	C.lbug_node_val_get_id_val(&lbugValue, &idValue)
 	nodeId, _ := lbugValueToGoValue(idValue)
 	node.ID = nodeId.(InternalID)
-	C.lbug_value_destroy(&idValue)
 	labelValue := C.lbug_value{}
 	C.lbug_node_val_get_label_val(&lbugValue, &labelValue)
 	nodeLabel, _ := lbugValueToGoValue(labelValue)
 	node.Label = nodeLabel.(string)
-	C.lbug_value_destroy(&labelValue)
 	var propertySize C.uint64_t
 	C.lbug_node_val_get_property_size(&lbugValue, &propertySize)
 	var currentKey *C.char
@@ -87,7 +85,6 @@ func lbugNodeValueToGoValue(lbugValue C.lbug_value) (Node, error) {
 			errors = append(errors, err)
 		}
 		node.Properties[keyString] = value
-		C.lbug_value_destroy(&currentVal)
 	}
 	if len(errors) > 0 {
 		return node, fmt.Errorf("failed to get values: %v", errors)
@@ -104,20 +101,16 @@ func lbugRelValueToGoValue(lbugValue C.lbug_value) (Relationship, error) {
 	C.lbug_rel_val_get_id_val(&lbugValue, &idValue)
 	id, _ := lbugValueToGoValue(idValue)
 	relation.ID = id.(InternalID)
-	C.lbug_value_destroy(&idValue)
 	C.lbug_rel_val_get_src_id_val(&lbugValue, &idValue)
 	src, _ := lbugValueToGoValue(idValue)
 	relation.SourceID = src.(InternalID)
-	C.lbug_value_destroy(&idValue)
 	C.lbug_rel_val_get_dst_id_val(&lbugValue, &idValue)
 	dst, _ := lbugValueToGoValue(idValue)
 	relation.DestinationID = dst.(InternalID)
-	C.lbug_value_destroy(&idValue)
 	labelValue := C.lbug_value{}
 	C.lbug_rel_val_get_label_val(&lbugValue, &labelValue)
 	label, _ := lbugValueToGoValue(labelValue)
 	relation.Label = label.(string)
-	C.lbug_value_destroy(&labelValue)
 	var propertySize C.uint64_t
 	C.lbug_rel_val_get_property_size(&lbugValue, &propertySize)
 	var currentKey *C.char
@@ -133,7 +126,6 @@ func lbugRelValueToGoValue(lbugValue C.lbug_value) (Relationship, error) {
 			errors = append(errors, err)
 		}
 		relation.Properties[keyString] = value
-		C.lbug_value_destroy(&currentVal)
 	}
 	if len(errors) > 0 {
 		return relation, fmt.Errorf("failed to get values: %v", errors)
@@ -148,8 +140,6 @@ func lbugRecursiveRelValueToGoValue(lbugValue C.lbug_value) (RecursiveRelationsh
 	var relsVal C.lbug_value
 	C.lbug_value_get_recursive_rel_node_list(&lbugValue, &nodesVal)
 	C.lbug_value_get_recursive_rel_rel_list(&lbugValue, &relsVal)
-	defer C.lbug_value_destroy(&nodesVal)
-	defer C.lbug_value_destroy(&relsVal)
 	nodes, _ := lbugListValueToGoValue(nodesVal)
 	rels, _ := lbugListValueToGoValue(relsVal)
 	recursiveRel := RecursiveRelationship{}
@@ -188,7 +178,6 @@ func lbugListValueToGoValue(lbugValue C.lbug_value) ([]any, error) {
 			errors = append(errors, err)
 		}
 		list = append(list, value)
-		C.lbug_value_destroy(&currentVal)
 	}
 	if len(errors) > 0 {
 		return list, fmt.Errorf("failed to get values: %v", errors)
@@ -215,7 +204,6 @@ func lbugStructValueToGoValue(lbugValue C.lbug_value) (map[string]any, error) {
 			errors = append(errors, err)
 		}
 		structure[keyString] = value
-		C.lbug_value_destroy(&currentVal)
 	}
 	if len(errors) > 0 {
 		return structure, fmt.Errorf("failed to get values: %v", errors)
@@ -243,8 +231,6 @@ func lbugMapValueToGoValue(lbugValue C.lbug_value) ([]MapItem, error) {
 		if err != nil {
 			errors = append(errors, err)
 		}
-		C.lbug_value_destroy(&currentKey)
-		C.lbug_value_destroy(&currentValue)
 		mapItems = append(mapItems, MapItem{Key: key, Value: value})
 	}
 	if len(errors) > 0 {
