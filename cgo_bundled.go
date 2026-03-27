@@ -2,7 +2,7 @@
 
 package lbug
 
-//go:generate sh download_lbug.sh
+//go:generate bash download_lbug.sh
 
 /*
 #cgo darwin LDFLAGS: -lc++ -L${SRCDIR}/lib/dynamic/osx -llbug -Wl,-rpath,${SRCDIR}/lib/dynamic/osx
