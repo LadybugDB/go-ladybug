@@ -43,7 +43,8 @@ If you prefer not to clone the go-ladybug repo, you can download the libraries (
 
 1.  Add a `go:generate` directive to your `main.go` or `tools.go` to download the libraries into a local folder (e.g. `lib-ladybug`) in order to automatically download the libraries at build time:
     ```go
-    //go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/refs/heads/master/download_lbug.sh | bash -s -- -out lib-ladybug"
+    //go:generate sh -c "curl -fsSL https://raw.githubusercontent.com/LadybugDB/ladybug/refs/heads/main/scripts/download-liblbug.sh | LBUG_TARGET_DIR=$(pwd)/lib-ladybug bash"
+    //go:generate sh -c "[ \"$(uname)\" = Darwin ] && ln -sf liblbug.dylib lib-ladybug/liblbug.0.dylib || ln -sf liblbug.so lib-ladybug/liblbug.so.0"
     ```
 
 2.  Run generation:
@@ -122,7 +123,7 @@ For Cgo to properly work on Windows, MSYS2 with `UCRT64` environment is required
    ```
 4. Add the path to `lbug_shared.dll` to your `PATH` environment variable. You can do this by running the following command in the MSYS2 terminal:
    ```bash
-   export PATH="$(pwd)/lib/dynamic/windows:$PATH"
+   export PATH="$(pwd)/lib/windows:$PATH"
    ```
    This is required to run the test cases and examples. If you are deploying your application, you can also copy the `lbug_shared.dll` file to the same directory as your executable or to a directory that is already in the `PATH`.
 
