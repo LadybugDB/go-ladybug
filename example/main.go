@@ -8,13 +8,16 @@ import (
 
 // To run this example with Option 2 (local library download), use:
 //
-// 1. Download libraries:
+// 1. Download libraries into this directory:
 //    go generate ./...
 //
 // 2. Build/Run with the system_ladybug tag:
 //    go run -tags system_ladybug main.go
+//
+// With Option 1 (go.work), no tag is needed - just: go run main.go
 
-//go:generate sh -c "curl -sL https://raw.githubusercontent.com/LadybugDB/go-ladybug/refs/heads/master/download_lbug.sh | bash -s -- -out lib-ladybug"
+//go:generate sh -c "curl -fsSL https://raw.githubusercontent.com/LadybugDB/ladybug/refs/heads/main/scripts/download-liblbug.sh | LBUG_TARGET_DIR=$(pwd)/lib-ladybug bash"
+//go:generate sh -c "[ \"$(uname)\" = Darwin ] && ln -sf liblbug.dylib lib-ladybug/liblbug.0.dylib || ln -sf liblbug.so lib-ladybug/liblbug.so.0"
 
 /*
 #cgo darwin LDFLAGS: -L${SRCDIR}/lib-ladybug -Wl,-rpath,${SRCDIR}/lib-ladybug

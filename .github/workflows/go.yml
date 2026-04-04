@@ -27,20 +27,11 @@ jobs:
 
     - name: Set library environment variables
       run: |
+        echo "LIBRARY_PATH=$(pwd)/lib:$LIBRARY_PATH" >> $GITHUB_ENV
         if [ "$RUNNER_OS" == "Linux" ]; then
-          if [ "$RUNNER_ARCH" == "X64" ]; then
-            os="linux-amd64"
-          elif [ "$RUNNER_ARCH" == "ARM64" ]; then
-            os="linux-arm64"
-          fi
+          echo "LD_LIBRARY_PATH=$(pwd)/lib:$LD_LIBRARY_PATH" >> $GITHUB_ENV
         elif [ "$RUNNER_OS" == "macOS" ]; then
-          os="osx"
-        fi
-        echo "LIBRARY_PATH=$(pwd)/lib/dynamic/$os:$LIBRARY_PATH" >> $GITHUB_ENV
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          echo "LD_LIBRARY_PATH=$(pwd)/lib/dynamic/$os:$LD_LIBRARY_PATH" >> $GITHUB_ENV
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          echo "DYLD_LIBRARY_PATH=$(pwd)/lib/dynamic/$os:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=$(pwd)/lib:$DYLD_LIBRARY_PATH" >> $GITHUB_ENV
         fi
 
     - name: Build
@@ -81,19 +72,19 @@ jobs:
 
     - name: Set library environment variables
       run: |
-        echo "LIBRARY_PATH=$(pwd)/lib/dynamic/windows:$LIBRARY_PATH" >> $GITHUB_ENV
+        echo "LIBRARY_PATH=$(pwd)/lib:$LIBRARY_PATH" >> $GITHUB_ENV
 
     - name: Build
       run: go build -v
 
     - name: Test
       run: |
-        export PATH="$(pwd)/lib/dynamic/windows:$PATH"
+        export PATH="$(pwd)/lib:$PATH"
         go test -v
 
     - name: Run example
       run: |
-        export PATH="$(pwd)/lib/dynamic/windows:$PATH"
+        export PATH="$(pwd)/lib:$PATH"
         cd example
         go run main.go
 
