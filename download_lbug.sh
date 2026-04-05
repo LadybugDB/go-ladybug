@@ -45,3 +45,7 @@ case "$OS" in
     fi
     ;;
 esac
+
+# Copy the header to the project root so it is available without a -I flag.
+cp "$LIB_DIR/lbug.h" "$SCRIPT_DIR/lbug.h"
+echo "Copied lbug.h to $SCRIPT_DIR"
