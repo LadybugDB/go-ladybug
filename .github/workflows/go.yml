@@ -18,7 +18,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: '1.25'
+        go-version: '1.26'
         
     - uses: actions/checkout@v4
     
@@ -87,4 +87,3 @@ jobs:
         export PATH="$(pwd)/lib:$PATH"
         cd example
         go run main.go
-
