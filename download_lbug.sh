@@ -1,13 +1,13 @@
 #!/bin/sh
 # Wrapper around upstream download-liblbug.sh (same pattern as go-ladybug).
-# Downloads prebuilt liblbug into a local cache and writes CMake env flags.
+# Downloads prebuilt liblbug into the local cgo library directory.
 set -eu
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 ENV_FILE="${1:-$PROJECT_DIR/.cache/lbug-prebuilt.env}"
-CACHE_LIB_DIR="${LBUG_TARGET_DIR:-$PROJECT_DIR/.cache/lbug-prebuilt/lib}"
+CACHE_LIB_DIR="${LBUG_TARGET_DIR:-$SCRIPT_DIR/lib}"
 LIB_KIND="${LBUG_LIB_KIND:-static}"
 UPSTREAM_SCRIPT="$SCRIPT_DIR/download-liblbug.sh"
 UPSTREAM_URL="https://raw.githubusercontent.com/LadybugDB/ladybug/refs/heads/main/scripts/download-liblbug.sh"
