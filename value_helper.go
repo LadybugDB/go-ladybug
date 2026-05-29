@@ -465,6 +465,18 @@ func int128ToBigInt(value C.lbug_int128_t) (*big.Int, error) {
 	return bigInt, nil
 }
 
+func lbugValuesHaveSameDataType(left *C.lbug_value, right *C.lbug_value) bool {
+	var leftType C.lbug_logical_type
+	C.lbug_value_get_data_type(left, &leftType)
+	defer C.lbug_data_type_destroy(&leftType)
+
+	var rightType C.lbug_logical_type
+	C.lbug_value_get_data_type(right, &rightType)
+	defer C.lbug_data_type_destroy(&rightType)
+
+	return bool(C.lbug_data_type_equals(&leftType, &rightType))
+}
+
 // goMapToLbugStruct converts a map of string to any to a lbug_value representing
 // a STRUCT. It returns an error if the map is empty.
 func goMapToLbugStruct(value map[string]any) (*C.lbug_value, error) {
@@ -483,14 +495,15 @@ func goMapToLbugStruct(value map[string]any) (*C.lbug_value, error) {
 	}
 	sort.Strings(sortedKeys)
 	for _, k := range sortedKeys {
-		fieldNames = append(fieldNames, C.CString(k))
+		fieldName := C.CString(k)
+		fieldNames = append(fieldNames, fieldName)
+		defer C.free(unsafe.Pointer(fieldName))
 		lbugValue, error := goValueToLbugValue(value[k])
 		if error != nil {
 			return nil, fmt.Errorf("failed to convert value in the map with error: %w", error)
 		}
 		fieldValues = append(fieldValues, lbugValue)
 		defer C.lbug_value_destroy(lbugValue)
-		defer C.free(unsafe.Pointer(C.CString(k)))
 	}
 
 	var lbugValue *C.lbug_value
@@ -512,6 +525,8 @@ func goSliceOfMapItemsToLbugMap(slice []MapItem) (*C.lbug_value, error) {
 	}
 	keys := make([]*C.lbug_value, 0, len(slice))
 	values := make([]*C.lbug_value, 0, len(slice))
+	var firstKey *C.lbug_value
+	var firstValue *C.lbug_value
 	for _, item := range slice {
 		key, error := goValueToLbugValue(item.Key)
 		if error != nil {
@@ -519,12 +534,26 @@ func goSliceOfMapItemsToLbugMap(slice []MapItem) (*C.lbug_value, error) {
 		}
 		keys = append(keys, key)
 		defer C.lbug_value_destroy(key)
+		if !bool(C.lbug_value_is_null(key)) {
+			if firstKey == nil {
+				firstKey = key
+			} else if !lbugValuesHaveSameDataType(firstKey, key) {
+				return nil, fmt.Errorf("failed to create MAP value with status: %d. please make sure all the keys are of the same type and all the values are of the same type", C.LbugError)
+			}
+		}
 		value, error := goValueToLbugValue(item.Value)
 		if error != nil {
 			return nil, fmt.Errorf("failed to convert value in the slice with error: %w", error)
 		}
 		values = append(values, value)
 		defer C.lbug_value_destroy(value)
+		if !bool(C.lbug_value_is_null(value)) {
+			if firstValue == nil {
+				firstValue = value
+			} else if !lbugValuesHaveSameDataType(firstValue, value) {
+				return nil, fmt.Errorf("failed to create MAP value with status: %d. please make sure all the keys are of the same type and all the values are of the same type", C.LbugError)
+			}
+		}
 	}
 	var lbugValue *C.lbug_value
 	status := C.lbug_value_create_map(numItems, &keys[0], &values[0], &lbugValue)
@@ -543,6 +572,7 @@ func goSliceToLbugList(slice []any) (*C.lbug_value, error) {
 		return nil, fmt.Errorf("failed to create LIST value because the slice is empty")
 	}
 	values := make([]*C.lbug_value, 0, len(slice))
+	var firstValue *C.lbug_value
 	for _, item := range slice {
 		value, error := goValueToLbugValue(item)
 		if error != nil {
@@ -550,6 +580,13 @@ func goSliceToLbugList(slice []any) (*C.lbug_value, error) {
 		}
 		values = append(values, value)
 		defer C.lbug_value_destroy(value)
+		if !bool(C.lbug_value_is_null(value)) {
+			if firstValue == nil {
+				firstValue = value
+			} else if !lbugValuesHaveSameDataType(firstValue, value) {
+				return nil, fmt.Errorf("failed to create LIST value with status: %d. please make sure all the values are of the same type", C.LbugError)
+			}
+		}
 	}
 	var lbugValue *C.lbug_value
 	status := C.lbug_value_create_list(numItems, &values[0], &lbugValue)
