@@ -97,15 +97,22 @@ TMPDIR="$(mktemp -d)"
 trap 'rm -rf "$TMPDIR"' EXIT
 
 fetch_release_archive() {
-  local version
+  local download_url
   if [ -n "$VERSION_OVERRIDE" ]; then
+    local version
     version="$VERSION_OVERRIDE"
+    version="${version#v}"
+    if [ -z "$version" ]; then
+      echo "LBUG_VERSION must not be empty" >&2
+      exit 1
+    fi
+    download_url="https://github.com/${REPOSITORY}/releases/download/v${version}/${ARCHIVE}"
+    SOURCE_DESC="release:v${version}"
   else
-    version="$(curl -sS "https://api.github.com/repos/${REPOSITORY}/releases/latest" | grep -o '"tag_name": "v\([^"]*\)"' | cut -d'"' -f4 | cut -c2-)"
+    download_url="https://github.com/${REPOSITORY}/releases/latest/download/${ARCHIVE}"
+    SOURCE_DESC="release:latest"
   fi
-  local download_url="https://github.com/${REPOSITORY}/releases/download/v${version}/${ARCHIVE}"
   curl -fSL "$download_url" -o "$TMPDIR/$ARCHIVE"
-  echo "release:v${version}"
 }
 
 fetch_run_artifact() {
@@ -121,13 +128,13 @@ fetch_run_artifact() {
     exit 1
   fi
   mv "$extracted_archive" "$TMPDIR/$ARCHIVE"
-  echo "run:${RUN_ID}/${ARTIFACT_NAME}"
+  SOURCE_DESC="run:${RUN_ID}/${ARTIFACT_NAME}"
 }
 
 if [ -n "$RUN_ID" ]; then
-  SOURCE_DESC="$(fetch_run_artifact)"
+  fetch_run_artifact
 else
-  SOURCE_DESC="$(fetch_release_archive)"
+  fetch_release_archive
 fi
 
 if [[ "$ARCHIVE" == *.zip ]]; then
