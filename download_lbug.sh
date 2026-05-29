@@ -8,9 +8,19 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 ENV_FILE="${1:-$PROJECT_DIR/.cache/lbug-prebuilt.env}"
 CACHE_LIB_DIR="${LBUG_TARGET_DIR:-$SCRIPT_DIR/lib}"
-LIB_KIND="${LBUG_LIB_KIND:-static}"
 UPSTREAM_SCRIPT="$SCRIPT_DIR/download-liblbug.sh"
 UPSTREAM_URL="https://raw.githubusercontent.com/LadybugDB/ladybug/refs/heads/main/scripts/download-liblbug.sh"
+
+OS="$(uname -s)"
+case "$OS" in
+  MINGW*|MSYS*|CYGWIN*)
+    DEFAULT_LIB_KIND="shared"
+    ;;
+  *)
+    DEFAULT_LIB_KIND="static"
+    ;;
+esac
+LIB_KIND="${LBUG_LIB_KIND:-$DEFAULT_LIB_KIND}"
 
 # Fetch the upstream helper if needed.
 if [ ! -f "$UPSTREAM_SCRIPT" ]; then
@@ -21,7 +31,6 @@ fi
 
 LBUG_TARGET_DIR="$CACHE_LIB_DIR" LBUG_LIB_KIND="$LIB_KIND" bash "$UPSTREAM_SCRIPT"
 
-OS="$(uname -s)"
 if [ "$LIB_KIND" = "shared" ]; then
   case "$OS" in
     Darwin)
