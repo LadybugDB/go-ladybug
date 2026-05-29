@@ -22,3 +22,8 @@ func (stmt *PreparedStatement) Close() {
 	C.lbug_prepared_statement_destroy(&stmt.cPreparedStatement)
 	stmt.isClosed = true
 }
+
+// IsReadOnly returns true if the prepared statement only performs read operations.
+func (stmt *PreparedStatement) IsReadOnly() bool {
+	return bool(C.lbug_prepared_statement_is_read_only(&stmt.cPreparedStatement))
+}
