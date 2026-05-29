@@ -7,7 +7,7 @@ package lbug
 /*
 #cgo CFLAGS: -I${SRCDIR}/lib
 #cgo darwin LDFLAGS: -lc++ -L${SRCDIR}/lib -llbug -Wl,-rpath,${SRCDIR}/lib
-#cgo linux LDFLAGS: -L${SRCDIR}/lib -llbug -lstdc++ -Wl,-rpath,${SRCDIR}/lib
+#cgo linux LDFLAGS: -L${SRCDIR}/lib -llbug -lstdc++ -lm -Wl,-rpath,${SRCDIR}/lib
 #cgo windows LDFLAGS: -L${SRCDIR}/lib -llbug_shared
 #include "lbug.h"
 */
