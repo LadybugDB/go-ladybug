@@ -63,6 +63,8 @@ jobs:
           git
           mingw-w64-ucrt-x86_64-go
           mingw-w64-ucrt-x86_64-gcc
+          mingw-w64-ucrt-x86_64-pkgconf
+          mingw-w64-ucrt-x86_64-openssl
           unzip
 
     - uses: actions/checkout@v4
