@@ -9,6 +9,7 @@ package lbug
 #cgo darwin LDFLAGS: -lc++ -L${SRCDIR}/lib -llbug -Wl,-rpath,${SRCDIR}/lib
 #cgo linux LDFLAGS: -L${SRCDIR}/lib -llbug -lstdc++ -lm -Wl,-rpath,${SRCDIR}/lib
 #cgo windows LDFLAGS: -L${SRCDIR}/lib -llbug_shared
+#cgo pkg-config: openssl
 #include "lbug.h"
 */
 import "C"
